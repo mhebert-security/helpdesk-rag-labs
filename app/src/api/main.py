@@ -14,7 +14,6 @@ import time
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from azure.ai.inference import ChatCompletionsClient
-from azure.ai.inference.models import SystemMessage, UserMessage, AssistantMessage
 from azure.core.credentials import AzureKeyCredential
 from pydantic import BaseModel
 
