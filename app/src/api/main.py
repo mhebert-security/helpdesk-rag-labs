@@ -13,7 +13,9 @@ import time
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
-from openai import AzureOpenAI
+from azure.ai.inference import ChatCompletionsClient
+from azure.ai.inference.models import SystemMessage, UserMessage, AssistantMessage
+from azure.core.credentials import AzureKeyCredential
 from pydantic import BaseModel
 
 from src.orchestrator.chat import build_messages, default_system_prompt
@@ -80,19 +82,19 @@ def _emit_chat_request(session_id: str | None, prompt_len: int, ip: str) -> None
 
 
 def _call_model(messages: list[dict]) -> str:
-    endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-    deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT")
-    if not endpoint or not deployment:
+    endpoint = os.getenv("AZURE_AI_FOUNDRY_ENDPOINT")
+    key = os.getenv("AZURE_AI_FOUNDRY_KEY")
+    model = os.getenv("AZURE_AI_FOUNDRY_MODEL", "DeepSeek-R1")
+    if not endpoint or not key:
         raise RuntimeError(
-            "AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_DEPLOYMENT must be set"
+            "AZURE_AI_FOUNDRY_ENDPOINT and AZURE_AI_FOUNDRY_KEY must be set"
         )
 
-    client = AzureOpenAI(
-        azure_endpoint=endpoint,
-        api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-        api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-06-01"),
+    client = ChatCompletionsClient(
+        endpoint=endpoint,
+        credential=AzureKeyCredential(key),
     )
-    completion = client.chat.completions.create(model=deployment, messages=messages)
+    completion = client.complete(model=model, messages=messages)
     return completion.choices[0].message.content or ""
 
 
