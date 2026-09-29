@@ -1,0 +1,11 @@
+// detections/kql/00-unauth.kql
+// Baseline: an unauthenticated call reached the chat endpoint.
+//
+// v0 emits chat.request with no user identity, so every request matches
+// until Entra ID auth lands and supplies a user_id. At that point this rule
+// narrows to isempty(user_id), and every match is a real anonymous call.
+customEvents
+| where name == "chat.request"
+| extend d = parse_json(customDimensions)
+| extend session_id = tostring(d.session_id), ip = tostring(d.ip)
+| project timestamp, session_id, ip, prompt_len = tolong(d.prompt_len)

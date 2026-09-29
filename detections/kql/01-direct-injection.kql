@@ -1,0 +1,14 @@
+// detections/kql/01-direct-injection.kql
+// Lab 01: a prompt-injection guard blocked an inbound message.
+//
+// The guard.verdict event does not exist in v0. This rule becomes live once
+// the lab 01 input classifier emits guard.verdict with category=injection
+// and verdict=block. Until then it matches nothing, which is correct.
+customEvents
+| where name == "guard.verdict"
+| extend d = parse_json(customDimensions)
+| where tostring(d.category) == "injection" and tostring(d.verdict) == "block"
+| project timestamp,
+          session_id = tostring(d.session_id),
+          guard = tostring(d.guard),
+          confidence = todouble(d.confidence)

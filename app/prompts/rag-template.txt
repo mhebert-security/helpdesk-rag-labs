@@ -1,0 +1,6 @@
+Context documents:
+{context}
+
+Employee question: {question}
+
+Answer using only the context above.
